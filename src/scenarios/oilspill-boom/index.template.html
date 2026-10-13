@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Simulasi Tumpahan Minyak — Boom Fleksibel</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden;background:#04070c;
+            font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#e6edf3}
+  #app{position:relative;width:100vw;height:100vh;height:100dvh}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  .glass{background:rgba(8,12,18,.87);border:1px solid rgba(255,255,255,.13);
+         border-radius:14px;backdrop-filter:blur(12px)}
+  .hide{display:none !important}
+
+  .screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;
+          justify-content:center;padding:16px;
+          background:linear-gradient(180deg,rgba(4,7,12,.88),rgba(4,7,12,.97))}
+  .card{width:100%;max-width:530px;max-height:88vh;overflow-y:auto;padding:22px}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+           color:#58a6ff;font-weight:700;margin-bottom:7px}
+  h1{font-size:19px;line-height:1.3;margin-bottom:12px;font-weight:700}
+  h2{font-size:16px;margin-bottom:10px}
+  .lead{font-size:13.5px;line-height:1.62;color:#adbac7;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px}
+  .cell{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+        border-radius:9px;padding:9px 11px}
+  .cell .k{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.07em}
+  .cell .v{font-size:15px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+  .note{font-size:12px;line-height:1.6;color:#8b949e;border-left:2px solid #d29922;
+        padding-left:11px;margin-bottom:16px}
+  button{width:100%;min-height:46px;padding:12px;font:600 14px/1.2 inherit;
+         border:none;border-radius:10px;cursor:pointer;color:#fff;background:#1f6f43}
+  button.sec{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#c9d1d9}
+  button:disabled{background:#1a1f26;color:#4d545c;cursor:not-allowed}
+  .brow{display:flex;gap:8px;margin-top:9px}
+
+  .opt{display:block;width:100%;text-align:left;padding:14px 15px;margin-bottom:9px;
+       border-radius:11px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.12);cursor:pointer}
+  .opt.sel{background:rgba(31,77,138,.35);border-color:#58a6ff}
+  .opt .t{font-size:14px;font-weight:700;margin-bottom:5px;color:#e6edf3}
+  .opt .d{font-size:12px;line-height:1.55;color:#8b949e;font-weight:400}
+
+  #hud{position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:10px;right:10px;
+       display:flex;gap:15px;padding:9px 13px;overflow-x:auto;font-size:11px;scrollbar-width:none;z-index:10}
+  #hud::-webkit-scrollbar{display:none}
+  .st{flex:0 0 auto;line-height:1.35}
+  .st .k{display:block;font-size:10px;color:#8b949e;white-space:nowrap}
+  .st .v{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .ok{color:#3fb950}.bad{color:#f85149}.warn{color:#d29922}
+
+  #phase{position:absolute;top:calc(env(safe-area-inset-top) + 62px);left:10px;
+         font-size:11px;font-weight:700;padding:6px 13px;border-radius:16px;z-index:10;
+         background:rgba(8,12,18,.87);border:1px solid #388bfd;color:#79c0ff;backdrop-filter:blur(12px)}
+  #camBtn{position:absolute;top:calc(env(safe-area-inset-top) + 58px);right:10px;z-index:10;
+          width:auto;min-height:34px;padding:7px 13px;font-size:12px;border-radius:17px}
+
+  #dock,#runDock{position:absolute;left:10px;right:10px;
+        bottom:calc(env(safe-area-inset-bottom) + 10px);padding:12px 13px;z-index:10}
+  #tip,#runTip{font-size:12.5px;line-height:1.55;color:#adbac7;margin-bottom:10px}
+  #prog{height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;margin-bottom:10px}
+  #progFill{height:100%;width:0;background:#58a6ff;border-radius:2px}
+
+  #toast{position:absolute;top:calc(env(safe-area-inset-top) + 100px);left:50%;
+         transform:translateX(-50%);z-index:15;font-size:12px;padding:8px 17px;border-radius:20px;
+         background:rgba(210,153,34,.18);border:1px solid #d29922;color:#e3b341;
+         white-space:nowrap;max-width:92vw;display:none}
+
+  #compass{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+  .dirbtn{flex:1 1 22%;min-width:64px;min-height:46px;padding:9px 4px;border-radius:9px;
+          background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);
+          color:#c9d1d9;font:700 13px/1.2 inherit;cursor:pointer}
+  .dirbtn.sel{background:#1f4d8a;border-color:#58a6ff;color:#fff}
+
+  .verdict{font-size:15px;font-weight:700;padding:11px 13px;border-radius:10px;margin-bottom:12px;line-height:1.45}
+  .v-ok{background:rgba(63,185,80,.13);border:1px solid #3fb950;color:#56d364}
+  .v-mid{background:rgba(210,153,34,.13);border:1px solid #d29922;color:#e3b341}
+  .v-bad{background:rgba(248,81,73,.13);border:1px solid #f85149;color:#ff7b72}
+  .sum{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+  .sum .cell{padding:7px 8px}.sum .v{font-size:14px}
+  .bar{margin-bottom:11px}
+  .bar .top{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;gap:10px}
+  .bar .top b{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .track{height:6px;background:rgba(255,255,255,.09);border-radius:3px;overflow:hidden}
+  .fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+  ul.notes{margin:15px 0 0;padding-left:17px;font-size:12px;line-height:1.65;color:#8b949e}
+  ul.notes li{margin-bottom:9px}
+  ul.notes b{color:#c9d1d9}
+
+  @media(max-width:420px){.sum{grid-template-columns:repeat(2,1fr)}}
+  @media(min-width:760px){
+    #hud{right:auto;width:auto;gap:22px;font-size:12px}
+    #dock,#runDock{right:auto;width:370px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══════ BRIEFING ═══════ -->
+  <div class="screen" id="scrBrief">
+    <div class="card glass">
+      <div class="eyebrow">Skenario Latihan · OPRC-IMO Level 1</div>
+      <h1>Penanggulangan Tumpahan Minyak<br>Pemilihan &amp; Penempatan Boom</h1>
+      <p class="lead">
+        Sebuah FSO yang tertambat di lepas pantai mengalami kebocoran lambung sisi selatan
+        akibat benturan dengan vessel pendukung. Minyak mulai keluar ke laut. Anda bertugas
+        menahan tumpahan sebelum mencapai kawasan mangrove di selatan.
+      </p>
+      <div class="grid">
+        <div class="cell"><div class="k">Arus menuju</div><div class="v" id="bCur">—</div></div>
+        <div class="cell"><div class="k">Kecepatan arus</div><div class="v" id="bCurS">—</div></div>
+        <div class="cell"><div class="k">Angin bertiup ke</div><div class="v" id="bWind">—</div></div>
+        <div class="cell"><div class="k">Kecepatan angin</div><div class="v" id="bWindS">—</div></div>
+        <div class="cell"><div class="k">Jenis minyak</div><div class="v" style="font-size:13px">Medium crude</div></div>
+        <div class="cell"><div class="k">Boom tersedia</div><div class="v" style="font-size:13px">±600 m</div></div>
+      </div>
+      <div class="note">
+        Minyak tidak hanya mengikuti arus. Angin menyeretnya sekitar 3% dari kecepatan angin —
+        arah gabungan keduanya yang menentukan ke mana <b>slick</b> (lapisan minyak di permukaan air)
+        bergerak. Boom juga bukan dinding kaku: ia lentur dan akan melengkung didorong arus.
+      </div>
+      <button id="btnBrief">Mulai penilaian situasi</button>
+    </div>
+  </div>
+
+  <!-- ═══════ TAHAP 1 ═══════ -->
+  <div class="screen hide" id="scrPredict">
+    <div class="card glass">
+      <div class="eyebrow">Tahap 1 dari 4 · Penilaian situasi</div>
+      <h1>Ke arah mana slick akan bergerak?</h1>
+      <p class="lead">Perkirakan arah pergerakan slick (lapisan minyak) dari data arus dan angin.</p>
+      <div class="grid">
+        <div class="cell"><div class="k">Arus menuju</div><div class="v" id="pCur">—</div></div>
+        <div class="cell"><div class="k">Angin bertiup ke</div><div class="v" id="pWind">—</div></div>
+      </div>
+      <div id="compass"></div>
+      <button id="btnPredict" disabled>Kunci perkiraan</button>
+    </div>
+  </div>
+
+  <!-- ═══════ TAHAP 2 ═══════ -->
+  <div class="screen hide" id="scrStrategy">
+    <div class="card glass">
+      <div class="eyebrow">Tahap 2 dari 4 · Pemilihan strategi</div>
+      <h1>Strategi penahanan apa yang Anda pilih?</h1>
+      <p class="lead">Sumber tumpahan berada pada kapal yang tertambat diam. Pilih konfigurasi boom
+        yang sesuai dengan kondisi arus di lokasi.</p>
+      <div class="grid" style="grid-template-columns:1fr">
+        <div class="cell"><div class="k">Kecepatan arus di lokasi</div>
+          <div class="v" id="sCur" style="font-size:18px">—</div></div>
+      </div>
+      <button class="opt" data-s="encircle">
+        <div class="t">Encirclement — kurung penuh mengelilingi kapal</div>
+        <div class="d">Boom dilingkarkan di sekeliling lambung dan ditambat ke beberapa jangkar.
+          Minyak terkurung dan dipulihkan di lokasi.</div>
+      </button>
+      <button class="opt" data-s="deflect">
+        <div class="t">Deflection — belokkan ke titik pengumpulan</div>
+        <div class="d">Boom dipasang menyudut terhadap arus. Minyak menyusuri boom menuju ujung
+          hilir, tempat kapal kerja mengumpulkannya.</div>
+      </button>
+      <div class="note" style="margin-top:14px">
+        Boom standar tidak mampu menahan minyak terhadap arus tegak lurus di atas
+        <b>0,7 knot</b> — berapapun ukuran boomnya. Minyak tertekan ke bawah skirt dan lolos.
+      </div>
+      <button id="btnStrategy" disabled>Kunci strategi</button>
+    </div>
+  </div>
+
+  <!-- ═══════ DEBRIEF ═══════ -->
+  <div class="screen hide" id="scrDebrief">
+    <div class="card glass">
+      <div class="eyebrow">Debrief · Hasil penilaian kompetensi</div>
+      <h2>Hasil Latihan</h2>
+      <div class="verdict" id="dVerdict"></div>
+      <div class="sum" id="dSum"></div>
+      <div id="dBars"></div>
+      <ul class="notes" id="dNotes"></ul>
+      <div class="brow">
+        <button class="sec" id="btnView">Lihat kondisi akhir</button>
+        <button id="btnReplay">Skenario baru</button>
+        <button class="hide" id="btnDone">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ HUD ═══════ -->
+  <div id="hud" class="glass hide">
+    <div class="st"><span class="k">Waktu</span><span class="v" id="hClock">T+00:00</span></div>
+    <div class="st"><span class="k">Strategi</span><span class="v" id="hStrat">—</span></div>
+    <div class="st"><span class="k">Boom</span><span class="v" id="hBoom">—</span></div>
+    <div class="st"><span class="k">Tertahan</span><span class="v ok" id="hIn">0</span></div>
+    <div class="st"><span class="k">Bocor boom</span><span class="v warn" id="hLeak">0</span></div>
+    <div class="st"><span class="k">Ke mangrove</span><span class="v bad" id="hAsh">0</span></div>
+  </div>
+
+  <div id="phase" class="hide">Tahap 3 · Penempatan boom</div>
+  <button class="sec hide" id="camBtn">Kamera: Perspektif</button>
+  <div id="toast"></div>
+
+  <div id="dock" class="glass hide">
+    <p id="tip">—</p>
+    <div class="brow">
+      <button class="sec" id="btnUndo">Hapus terakhir</button>
+      <button id="btnRun">Jalankan</button>
+    </div>
+  </div>
+
+  <div id="runDock" class="glass hide">
+    <p id="runTip">Simulasi berjalan — amati slick menumpuk dan menyusur sepanjang boom.</p>
+    <div id="prog"><div id="progFill"></div></div>
+    <div class="brow">
+      <button class="sec" id="btnSpeed">Kecepatan 1×</button>
+      <button class="sec" id="btnStop">Hentikan &amp; lihat hasil</button>
+    </div>
+  </div>
+</div>
+<div id="status" class="glass hide" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);padding:14px 20px;z-index:40;font-size:13px">Menyiapkan…</div>
+<!--SCRIPT-->
+</body>
+</html>

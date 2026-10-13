@@ -1,0 +1,19 @@
+{
+  "name": "gladhy-simulations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Simulasi 3D untuk Gladhy (OSCT Indonesia): engine-core deterministik + skenario three.js yang dibundel jadi satu berkas HTML.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test \"test/*.test.js\"",
+    "serve": "node scripts/serve.mjs"
+  },
+  "dependencies": {
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "fflate": "^0.8.3"
+  }
+}
