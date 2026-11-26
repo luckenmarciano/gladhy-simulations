@@ -7,8 +7,10 @@ supaya berjalan di `<iframe sandbox="allow-scripts">` dengan CSP mount `/games` 
 ## Struktur
 - `src/core/oilspill.js` — engine-core deterministik (PRNG mulberry32, DT tetap). Dipakai klien (three.js) dan server (replay + skor resmi).
 - `src/scenarios/oilspill-boom/` — skenario "Pemilihan & Penempatan Boom" (three.js).
+- `src/core/aerial.js` + `src/scenarios/pengamat-udara/` — skenario "Pengamat Udara" (OPRC-IMO Level 1,
+  Modul 1.1): mengenali warna tampak slick dan menghitung volumenya (workbook hlm 14). Tampilan 2D (SVG).
 - `scripts/build.mjs` — build ke `dist/` (HTML mandiri, zip untuk unggahan trainer, `dist/core/oilspill.cjs`).
-- `scripts/sandbox-check.mjs` — uji di iframe sandbox + CSP asli (Playwright).
+- `scripts/sandbox-check.mjs`, `scripts/sandbox-check-aerial.mjs` — uji di iframe sandbox + CSP asli (Playwright).
 - `test/core.test.js` — tes determinisme, rubrik, dan replay.
 
 ## Perintah
@@ -19,8 +21,8 @@ npm run build
 ```
 
 ## Rilis ke gladhy-backend
-1. `dist/oilspill-boom/index.html` → `gladhy-backend/builtin-games/_builtin/oilspill-boom/v<N>/index.html`
-2. `dist/core/oilspill.cjs` → `gladhy-backend/src/vendor/oilspill-core.cjs`
+1. `dist/<skenario>/index.html` → `gladhy-backend/builtin-games/_builtin/<skenario>/v<N>/index.html`
+2. `dist/core/<core>.cjs` → `gladhy-backend/src/vendor/<core>-core.cjs` (`oilspill`, `aerial`)
 3. Versi build bersifat immutable (cache 365 hari): perubahan = direktori versi baru + perbarui `build_path` di `gameTemplates.js`.
 
 ## Protokol postMessage v2
