@@ -16,6 +16,8 @@ const dist = path.join(root, 'dist')
 const SCENARIOS = [
   { name: 'oilspill-boom', core: 'oilspill' },
   { name: 'pengamat-udara', core: 'aerial' },
+  { name: 'tata-lokasi', core: 'site' },
+  { name: 'boom-bocor', core: 'leak' },
 ]
 
 rmSync(dist, { recursive: true, force: true })
